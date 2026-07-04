@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Vyper — Project Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0b;
+    --surface:#141416;
+    --surface-2:#1b1b1e;
+    --line:#2a2a2e;
+    --green:#43ff6c;
+    --green-dim:#1f7a3d;
+    --white:#f4f4f5;
+    --muted:#8a8a93;
+    --danger:#ff5c5c;
+    --radius:2px;
+    --ff-ar:'IBM Plex Sans Arabic', sans-serif;
+    --ff-en:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--white); font-family:var(--ff-ar); min-height:100%;}
+  body.lang-en{font-family:var(--ff-en);}
+  ::selection{background:var(--green); color:#000;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; background:rgba(10,10,11,0.9); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{font-weight:800; font-size:20px; letter-spacing:1px; color:var(--green); font-family:var(--ff-en);}
+  .brand-tag{font-size:10px; letter-spacing:3px; color:var(--muted); font-family:var(--ff-en); border-inline-start:1px solid var(--line); padding-inline-start:10px;}
+  .top-actions{display:flex; align-items:center; gap:14px;}
+  .step-indicator{font-size:12px; color:var(--muted); font-family:var(--ff-en); letter-spacing:1px;}
+  .lang-switch{
+    display:flex; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  }
+  .lang-switch button{
+    background:transparent; border:none; color:var(--muted); font-size:12px; font-weight:700;
+    padding:6px 12px; font-family:var(--ff-en); letter-spacing:1px;
+  }
+  .lang-switch button.active{background:var(--green); color:#000;}
+
+  /* ---------- Layout ---------- */
+  .wrap{
+    display:grid; grid-template-columns:220px 1fr; max-width:1180px; margin:0 auto;
+    min-height:calc(100vh - 65px);
+  }
+  @media (max-width:860px){
+    .wrap{grid-template-columns:1fr;}
+    .rail-col{display:none;}
+  }
+
+  /* ---------- Snake progress rail ---------- */
+  .rail-col{ padding:36px 12px; position:relative; }
+  .rail-svg{ display:block; margin:0 auto; }
+  .rail-node{ fill:var(--surface-2); stroke:var(--line); stroke-width:2px; }
+  .rail-node.done{ fill:var(--green-dim); stroke:var(--green); }
+  .rail-node.current{ fill:var(--bg); stroke:var(--green); stroke-width:3px; }
+  .rail-num{ font-family:var(--ff-en); font-size:13px; font-weight:700; fill:var(--muted); }
+  .rail-num.done, .rail-num.current{ fill:var(--white); }
+  .rail-label{ font-family:var(--ff-en); font-size:9px; fill:var(--muted); letter-spacing:1px; }
+  .snake-head{
+    position:absolute; width:16px; height:16px; border-radius:2px;
+    background:var(--green); transform:translate(-50%,-50%) rotate(45deg);
+    box-shadow:0 0 14px 2px rgba(67,255,108,0.7);
+    offset-rotate:0deg;
+    transition:offset-distance .5s cubic-bezier(.65,0,.35,1);
+    top:0; left:0;
+  }
+
+  /* ---------- Mobile progress ---------- */
+  .mobile-progress{ display:none; padding:14px 20px 0; }
+  @media (max-width:860px){ .mobile-progress{ display:block; } }
+  .mobile-progress-track{ height:3px; background:var(--line); border-radius:2px; overflow:hidden; }
+  .mobile-progress-fill{ height:100%; background:var(--green); transition:width .4s ease; }
+  .mobile-progress-text{ font-family:var(--ff-en); font-size:11px; color:var(--muted); margin-top:8px; letter-spacing:1px; }
+
+  /* ---------- Main content ---------- */
+  .content-col{ padding:40px 28px 140px; }
+  @media (max-width:860px){ .content-col{ padding:24px 18px 160px; } }
+
+  .step{ display:none; animation:fadeUp .45s ease; }
+  .step.active{ display:block; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .step-eyebrow{ font-family:var(--ff-en); font-size:11px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:10px; }
+  .step-title{ font-size:28px; font-weight:800; margin-bottom:8px; letter-spacing:-.5px; }
+  .step-sub{ font-size:14px; color:var(--muted); margin-bottom:32px; max-width:520px; line-height:1.7; }
+
+  .field{ margin-bottom:22px; }
+  .field label{ display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--white); }
+  .field .hint{ font-size:12px; color:var(--muted); margin-top:6px; }
+  .field input[type=text], .field input[type=tel], .field input[type=number], .field input[type=date], .field select, .field textarea{
+    width:100%; background:var(--surface); border:1px solid var(--line); color:var(--white);
+    padding:13px 14px; border-radius:var(--radius); font-size:14px; outline:none;
+    transition:border-color .2s;
+  }
+  .field textarea{ min-height:90px; resize:vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--green); }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:600px){ .grid2{ grid-template-columns:1fr; } }
+
+  .choice-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .choice-pill{
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    padding:10px 16px; border-radius:var(--radius); font-size:13px; font-weight:600;
+    transition:.2s;
+  }
+  .choice-pill input{ display:none; }
+  .choice-pill.on{ border-color:var(--green); color:var(--green); background:rgba(67,255,108,0.08); }
+
+  /* Package cards */
+  .pkg-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:760px){ .pkg-grid{ grid-template-columns:1fr; } }
+  .pkg-card{
+    border:1px solid var(--line); background:var(--surface); border-radius:var(--radius);
+    padding:22px 18px; cursor:pointer; position:relative; transition:.2s;
+  }
+  .pkg-card:hover{ border-color:#3a3a3f; }
+  .pkg-card.selected{ border-color:var(--green); box-shadow:0 0 0 1px var(--green); background:rgba(67,255,108,0.05); }
+  .pkg-card input{ display:none; }
+  .pkg-name{ font-weight:800; font-size:18px; margin-bottom:6px; font-family:var(--ff-en); }
+  .pkg-price{ font-size:12px; color:var(--green); font-weight:700; margin-bottom:14px; font-family:var(--ff-en); }
+  .pkg-desc{ font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:14px; }
+  .pkg-features{ list-style:none; font-size:12px; color:var(--white); }
+  .pkg-features li{ padding-inline-start:16px; position:relative; margin-bottom:6px; }
+  .pkg-features li::before{ content:'—'; position:absolute; inset-inline-start:0; color:var(--green); }
+
+  /* Checklist groups */
+  .check-group{ border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin-bottom:14px; }
+  .check-group h4{ font-size:12px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin-bottom:12px; font-family:var(--ff-en); }
+  .check-item{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--surface-2); font-size:14px; }
+  .check-item:last-child{ border-bottom:none; }
+  .check-item input[type=checkbox]{ width:17px; height:17px; accent-color:var(--green); }
+  .check-item.locked{ color:var(--muted); }
+  .check-item .price-tag{ margin-inline-start:auto; font-size:11px; color:var(--muted); font-family:var(--ff-en); }
+  .check-item.locked .price-tag{ color:var(--green-dim); }
+
+  .skip-note{
+    border:1px dashed var(--line); border-radius:var(--radius); padding:20px; text-align:center;
+    color:var(--muted); font-size:13px;
+  }
+
+  /* Nav buttons */
+  .nav-row{ display:flex; justify-content:space-between; margin-top:36px; gap:12px; }
+  .btn{
+    padding:13px 26px; border-radius:var(--radius); font-size:14px; font-weight:700; border:1px solid var(--line);
+    background:transparent; color:var(--white); transition:.2s;
+  }
+  .btn:hover{ border-color:var(--muted); }
+  .btn-primary{ background:var(--green); color:#000; border-color:var(--green); }
+  .btn-primary:hover{ background:#57ff7d; }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-ghost{ color:var(--muted); border-color:transparent; }
+
+  /* Sticky price bar */
+  .price-bar{
+    position:fixed; bottom:0; inset-inline:0; z-index:50;
+    background:rgba(10,10,11,0.95); backdrop-filter:blur(10px); border-top:1px solid var(--line);
+    padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+  .price-bar-label{ font-size:11px; color:var(--muted); letter-spacing:1px; }
+  .price-bar-value{ font-size:22px; font-weight:800; color:var(--green); font-family:var(--ff-en); }
+  .price-bar-note{ font-size:10px; color:var(--muted); max-width:260px; line-height:1.5; }
+
+  /* Review step */
+  .review-block{ border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin-bottom:12px; }
+  .review-block h4{ font-size:12px; color:var(--green); letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; font-family:var(--ff-en); }
+  .review-line{ display:flex; justify-content:space-between; font-size:13px; padding:5px 0; color:var(--white); gap:10px; }
+  .review-line span:first-child{ color:var(--muted); }
+
+  /* Success screen */
+  .success-wrap{ text-align:center; padding:60px 20px; }
+  .success-mark{ font-size:52px; color:var(--green); margin-bottom:18px; }
+  .ref-id{ font-family:var(--ff-en); color:var(--green); font-weight:700; letter-spacing:1px; }
+
+  .required-star{ color:var(--danger); }
+
+  /* ---------- Social chips ---------- */
+  .social-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .social-chip{
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    padding:9px 16px; border-radius:20px; font-size:13px; font-weight:600; transition:.2s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .social-chip:hover{ border-color:#3a3a3f; color:var(--white); }
+  .social-chip.on{ border-color:var(--green); color:var(--green); background:rgba(67,255,108,0.08); }
+  .social-chip.on::before{ content:'✓'; font-size:11px; }
+  .social-link-row{
+    display:flex; align-items:center; gap:8px; margin-top:8px; animation:fadeUp .25s ease;
+  }
+  .social-link-row .platform-tag{
+    font-size:12px; font-weight:700; color:var(--green); min-width:82px; font-family:var(--ff-en);
+    flex-shrink:0;
+  }
+  .social-link-row input{
+    flex:1; background:var(--surface); border:1px solid var(--line); color:var(--white);
+    padding:11px 13px; border-radius:var(--radius); font-size:13px; outline:none;
+  }
+  .social-link-row input:focus{ border-color:var(--green); }
+  .social-link-row .remove-link{
+    background:transparent; border:1px solid var(--line); color:var(--muted); width:36px; height:36px;
+    border-radius:var(--radius); flex-shrink:0; font-size:14px; transition:.2s;
+  }
+  .social-link-row .remove-link:hover{ border-color:var(--danger); color:var(--danger); }
+  .social-link-row .custom-platform-name{ max-width:150px; flex:0 0 150px; }
+  .btn-add-link{
+    background:transparent; border:1px dashed var(--line); color:var(--muted); font-size:12px;
+    padding:9px 16px; border-radius:var(--radius); margin-top:10px; transition:.2s; font-weight:600;
+  }
+  .btn-add-link:hover{ border-color:var(--green); color:var(--green); }
+
+  /* ---------- Landing cover ---------- */
+  .cover{
+    min-height:calc(100vh - 65px); display:flex; flex-direction:column; justify-content:center;
+    padding:20px 0 80px; max-width:640px;
+  }
+  .cover-eyebrow{ font-family:var(--ff-en); font-size:12px; letter-spacing:4px; color:var(--green); margin-bottom:22px; text-transform:uppercase; }
+  .cover-title{ font-size:44px; font-weight:800; line-height:1.25; letter-spacing:-1px; margin-bottom:20px; }
+  .cover-title .accent{ color:var(--green); }
+  .cover-sub{ font-size:16px; color:var(--muted); line-height:1.8; margin-bottom:36px; max-width:480px; }
+  .cover-meta{ display:flex; gap:28px; margin-bottom:40px; flex-wrap:wrap; }
+  .cover-meta-item{ font-size:12px; color:var(--muted); }
+  .cover-meta-item b{ display:block; color:var(--white); font-size:20px; font-family:var(--ff-en); margin-bottom:2px; }
+  .cover-cta{
+    background:var(--green); color:#000; border:none; padding:17px 34px; border-radius:var(--radius);
+    font-size:15px; font-weight:800; display:inline-flex; align-items:center; gap:10px; transition:.2s;
+  }
+  .cover-cta:hover{ background:#57ff7d; transform:translateX(2px); }
+  body.lang-en .cover-cta:hover{ transform:translateX(-2px); }
+  @media (max-width:600px){ .cover-title{ font-size:32px; } }
+
+  /* ---------- Refined interactions ---------- */
+  .pkg-card{ transform:translateY(0); }
+  .pkg-card:hover{ transform:translateY(-3px); }
+  .choice-pill{ cursor:pointer; }
+  .choice-pill:hover{ border-color:#3a3a3f; }
+  input:focus-visible, select:focus-visible, button:focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-mark">VYPER</span>
+    <span class="brand-tag" data-ar="ابدأ مشروعك" data-en="START YOUR PROJECT">ابدأ مشروعك</span>
+  </div>
+  <div class="top-actions">
+    <span class="step-indicator"><span id="stepNowLabel">1</span> / 9</span>
+    <div class="lang-switch">
+      <button id="btnAr" class="active" onclick="setLang('ar')">AR</button>
+      <button id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-progress">
+  <div class="mobile-progress-track"><div class="mobile-progress-fill" id="mobileFill" style="width:11%"></div></div>
+  <div class="mobile-progress-text" data-ar="الخطوة" data-en="STEP">الخطوة <span id="mobileStepNow">1</span> / 9</div>
+</div>
+
+<div class="wrap">
+
+  <!-- Snake rail (desktop) -->
+  <div class="rail-col">
+    <svg class="rail-svg" width="120" height="920" viewBox="0 0 120 920">
+      <path d="M30,40 L90,145 L30,250 L90,355 L30,460 L90,565 L30,670 L90,775 L30,880"
+            fill="none" stroke="#2a2a2e" stroke-width="2"/>
+      <g id="railNodes"></g>
+    </svg>
+    <div class="snake-head" id="snakeHead" style="offset-path:path('M30,40 L90,145 L30,250 L90,355 L30,460 L90,565 L30,670 L90,775 L30,880'); offset-distance:0%;"></div>
+  </div>
+
+  <div class="content-col">
+
+    <!-- COVER -->
+    <section class="step active" data-step="0">
+      <div class="cover">
+        <div class="cover-eyebrow" data-ar="بريف بدء المشروع" data-en="PROJECT INTAKE BRIEF">بريف بدء المشروع</div>
+        <h1 class="cover-title">
+          <span data-ar="خلّينا نبني" data-en="Let's build">خلّينا نبني</span>
+          <span class="accent" data-ar="اللي إنت محتاجه." data-en="what you actually need.">اللي إنت محتاجه.</span>
+        </h1>
+        <p class="cover-sub" data-ar="9 خطوات سريعة هتدّينا صورة كاملة عن مشروعك — من الباقة المناسبة لحد تفاصيل الاستضافة، وفي الآخر هتاخد تقدير سعر مبدئي فوري." data-en="9 quick steps to give us the full picture of your project — from the right package to hosting details, with an instant rough price estimate at the end.">9 خطوات سريعة هتدّينا صورة كاملة عن مشروعك — من الباقة المناسبة لحد تفاصيل الاستضافة، وفي الآخر هتاخد تقدير سعر مبدئي فوري.</p>
+        <div class="cover-meta">
+          <div class="cover-meta-item"><b>9</b><span data-ar="خطوات" data-en="Steps">خطوات</span></div>
+          <div class="cover-meta-item"><b>~3</b><span data-ar="دقايق" data-en="Minutes">دقايق</span></div>
+          <div class="cover-meta-item"><b>0</b><span data-ar="التزام" data-en="Commitment">التزام</span></div>
+        </div>
+        <button type="button" class="cover-cta" onclick="startBrief()">
+          <span data-ar="ابدأ البريف" data-en="Start the brief">ابدأ البريف</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section class="step active" data-step="1">
+      <div class="step-eyebrow" data-ar="الخطوة ١" data-en="STEP 1">الخطوة ١</div>
+      <h2 class="step-title" data-ar="بيانات البراند" data-en="Brand details">بيانات البراند</h2>
+      <p class="step-sub" data-ar="خلّينا نتعرف على البراند بتاعك الأول." data-en="Let's start with the basics about your brand.">خلّينا نتعرف على البراند بتاعك الأول.</p>
+
+      <div class="grid2">
+        <div class="field">
+          <label><span data-ar="اسم البراند (عربي)" data-en="Brand name (Arabic)">اسم البراند (عربي)</span> <span class="required-star">*</span></label>
+          <input type="text" id="brandNameAr" placeholder="مثال: سبارك">
+        </div>
+        <div class="field">
+          <label data-ar="اسم البراند (إنجليزي)" data-en="Brand name (English)">اسم البراند (إنجليزي)</label>
+          <input type="text" id="brandNameEn" placeholder="e.g. Spark">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ar="نوع النشاط" data-en="Business type">نوع النشاط</span> <span class="required-star">*</span></label>
+        <select id="businessType">
+          <option value="restaurant" data-ar="مطعم" data-en="Restaurant">مطعم</option>
+          <option value="cafe" data-ar="كافيه" data-en="Cafe">كافيه</option>
+          <option value="clinic" data-ar="عيادة طبية" data-en="Medical clinic">عيادة طبية</option>
+          <option value="pharmacy" data-ar="صيدلية" data-en="Pharmacy">صيدلية</option>
+          <option value="supermarket" data-ar="سوبرماركت" data-en="Supermarket">سوبرماركت</option>
+          <option value="tutoring" data-ar="سنتر دروس" data-en="Tutoring center">سنتر دروس</option>
+          <option value="store" data-ar="متجر منتجات" data-en="Product store">متجر منتجات</option>
+          <option value="service" data-ar="خدمة (استشارات، صيانة، إلخ)" data-en="Service business">خدمة (استشارات، صيانة، إلخ)</option>
+          <option value="other" data-ar="أخرى" data-en="Other">أخرى</option>
+        </select>
+        <div id="otherTypeBox" style="display:none; margin-top:12px;">
+          <input type="text" id="otherTypeName" placeholder="اكتب نوع النشاط">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label data-ar="عدد الفروع" data-en="Number of branches">عدد الفروع</label>
+          <input type="number" id="branchCount" min="1" value="1">
+        </div>
+        <div class="field">
+          <label data-ar="مكان الفروع (لو أكتر من واحد)" data-en="Branch locations (if more than one)">مكان الفروع (لو أكتر من واحد)</label>
+          <input type="text" id="branchLocations" placeholder="مثال: الزقازيق، أولاد صقر">
+        </div>
+      </div>
+
+      <div class="field">
+        <label data-ar="لينكات السوشيال ميديا الحالية" data-en="Current social media links">لينكات السوشيال ميديا الحالية</label>
+        <p class="hint" style="margin-top:-2px; margin-bottom:12px;" data-ar="اختار المنصات الموجودة عندك، وهيظهرلك بوكس تكتب فيه اللينك لكل منصة." data-en="Pick the platforms you're on, then drop in the link for each one.">اختار المنصات الموجودة عندك، وهيظهرلك بوكس تكتب فيه اللينك لكل منصة.</p>
+        <div class="social-chips" id="socialChips">
+          <button type="button" class="social-chip" data-platform="instagram">Instagram</button>
+          <button type="button" class="social-chip" data-platform="facebook">Facebook</button>
+          <button type="button" class="social-chip" data-platform="tiktok">TikTok</button>
+          <button type="button" class="social-chip" data-platform="snapchat">Snapchat</button>
+          <button type="button" class="social-chip" data-platform="whatsapp">WhatsApp</button>
+          <button type="button" class="social-chip" data-platform="website"><span data-ar="موقع حالي" data-en="Current website">موقع حالي</span></button>
+        </div>
+        <div id="socialLinksInputs"></div>
+        <button type="button" class="btn-add-link" id="addCustomSocial" data-ar="+ إضافة رابط تاني" data-en="+ Add another link">+ إضافة رابط تاني</button>
+      </div>
+
+      <div class="field">
+        <label data-ar="عندك هوية بصرية (لوجو وألوان) جاهزة؟" data-en="Do you have a ready visual identity (logo & colors)?">عندك هوية بصرية (لوجو وألوان) جاهزة؟</label>
+        <div class="choice-row" id="identityChoice">
+          <label class="choice-pill"><input type="radio" name="identity" value="ready"><span data-ar="جاهزة بالكامل" data-en="Fully ready">جاهزة بالكامل</span></label>
+          <label class="choice-pill"><input type="radio" name="identity" value="partial"><span data-ar="عندي لوجو بس مفيش هوية كاملة" data-en="Have a logo, no full identity">عندي لوجو بس مفيش هوية كاملة</span></label>
+          <label class="choice-pill"><input type="radio" name="identity" value="none"><span data-ar="محتاج Vyper تصممها" data-en="Need Vyper to design it">محتاج Vyper تصممها</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2">
+      <div class="step-eyebrow" data-ar="الخطوة ٢" data-en="STEP 2">الخطوة ٢</div>
+      <h2 class="step-title" data-ar="جاهزية المحتوى" data-en="Content readiness">جاهزية المحتوى</h2>
+      <p class="step-sub" data-ar="ده بيأثر مباشرة في وقت التنفيذ والسعر التقريبي." data-en="This directly affects build time and the estimated price.">ده بيأثر مباشرة في وقت التنفيذ والسعر التقريبي.</p>
+
+      <div class="field">
+        <label data-ar="عندك صور منتجات/قائمة احترافية؟" data-en="Do you have professional product/menu photos?">عندك صور منتجات/قائمة احترافية؟</label>
+        <div class="choice-row" id="photosChoice">
+          <label class="choice-pill"><input type="radio" name="photos" value="ready"><span data-ar="جاهزة" data-en="Ready">جاهزة</span></label>
+          <label class="choice-pill"><input type="radio" name="photos" value="partial"><span data-ar="جزء بس" data-en="Some of them">جزء بس</span></label>
+          <label class="choice-pill"><input type="radio" name="photos" value="none"><span data-ar="محتاج تصوير/تجهيز" data-en="Need photography">محتاج تصوير/تجهيز</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label data-ar="عدد المنتجات/الأصناف التقريبي" data-en="Approximate number of products/items">عدد المنتجات/الأصناف التقريبي</label>
+        <input type="number" id="productCount" min="0" placeholder="مثال: 55">
+      </div>
+
+      <div class="field">
+        <label data-ar="عندك نصوص جاهزة (وصف البراند، أوصاف المنتجات)؟" data-en="Do you have ready copy (brand description, product descriptions)?">عندك نصوص جاهزة (وصف البراند، أوصاف المنتجات)؟</label>
+        <div class="choice-row" id="copyChoice">
+          <label class="choice-pill"><input type="radio" name="copy" value="ready"><span data-ar="جاهزة" data-en="Ready">جاهزة</span></label>
+          <label class="choice-pill"><input type="radio" name="copy" value="none"><span data-ar="محتاج حد يكتبها" data-en="Need it written">محتاج حد يكتبها</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3">
+      <div class="step-eyebrow" data-ar="الخطوة ٣" data-en="STEP 3">الخطوة ٣</div>
+      <h2 class="step-title" data-ar="اختار الباقة" data-en="Choose your package">اختار الباقة</h2>
+      <p class="step-sub" data-ar="اختار الباقة الأقرب لاحتياجك — تقدر تعدّل التفاصيل في الخطوة الجاية." data-en="Pick the closest package — you can fine-tune details next.">اختار الباقة الأقرب لاحتياجك — تقدر تعدّل التفاصيل في الخطوة الجاية.</p>
+
+      <div class="pkg-grid" id="pkgGrid">
+        <label class="pkg-card" data-pkg="starter">
+          <input type="radio" name="package" value="starter">
+          <div class="pkg-name">Starter</div>
+          <div class="pkg-price">~4,500 <span data-ar="ج.م" data-en="EGP">ج.م</span></div>
+          <div class="pkg-desc" data-ar="موقع تعريفي بصفحة واحدة، مناسب للبراندات الناشئة." data-en="A single-page website, ideal for new brands.">موقع تعريفي بصفحة واحدة، مناسب للبراندات الناشئة.</div>
+          <ul class="pkg-features">
+            <li data-ar="صفحة واحدة عربي/إنجليزي" data-en="One page, AR/EN">صفحة واحدة عربي/إنجليزي</li>
+            <li data-ar="تواصل واتساب مباشر" data-en="Direct WhatsApp contact">تواصل واتساب مباشر</li>
+          </ul>
+        </label>
+        <label class="pkg-card" data-pkg="commerce">
+          <input type="radio" name="package" value="commerce">
+          <div class="pkg-name">Commerce</div>
+          <div class="pkg-price">~11,000 <span data-ar="ج.م" data-en="EGP">ج.م</span></div>
+          <div class="pkg-desc" data-ar="موقع كامل مع كارت وأوردرات — مناسب لمطاعم ومتاجر." data-en="Full site with cart & orders — for restaurants & stores.">موقع كامل مع كارت وأوردرات — مناسب لمطاعم ومتاجر.</div>
+          <ul class="pkg-features">
+            <li data-ar="كارت + واتساب checkout" data-en="Cart + WhatsApp checkout">كارت + واتساب checkout</li>
+            <li data-ar="قوائم منتجات ديناميكية" data-en="Dynamic product menus">قوائم منتجات ديناميكية</li>
+            <li data-ar="لوحة تحكم بسيطة" data-en="Simple admin dashboard">لوحة تحكم بسيطة</li>
+          </ul>
+        </label>
+        <label class="pkg-card" data-pkg="suite">
+          <input type="radio" name="package" value="suite">
+          <div class="pkg-name">Suite</div>
+          <div class="pkg-price">~25,000 <span data-ar="ج.م" data-en="EGP">ج.م</span></div>
+          <div class="pkg-desc" data-ar="نظام متكامل بفروع متعددة وإدارة كاملة." data-en="A complete system for multi-branch management.">نظام متكامل بفروع متعددة وإدارة كاملة.</div>
+          <ul class="pkg-features">
+            <li data-ar="كل حاجة في Commerce" data-en="Everything in Commerce">كل حاجة في Commerce</li>
+            <li data-ar="نظام POS كامل" data-en="Full POS system">نظام POS كامل</li>
+            <li data-ar="تقارير ومبيعات" data-en="Reports & analytics">تقارير ومبيعات</li>
+          </ul>
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="step" data-step="4">
+      <div class="step-eyebrow" data-ar="الخطوة ٤" data-en="STEP 4">الخطوة ٤</div>
+      <h2 class="step-title" data-ar="الصفحات والمميزات" data-en="Pages & features">الصفحات والمميزات</h2>
+      <p class="step-sub" data-ar="دي بتتحدد تلقائي حسب الباقة، وتقدر تضيف مميزات اختيارية." data-en="Auto-set based on your package, with optional add-ons.">دي بتتحدد تلقائي حسب الباقة، وتقدر تضيف مميزات اختيارية.</p>
+
+      <div class="check-group">
+        <h4 data-ar="متضمن في باقتك" data-en="Included in your package">متضمن في باقتك</h4>
+        <div id="includedList"></div>
+      </div>
+
+      <div class="check-group">
+        <h4 data-ar="إضافات اختيارية" data-en="Optional add-ons">إضافات اختيارية</h4>
+        <div class="check-item">
+          <input type="checkbox" id="addCoupons" data-price="1500">
+          <label for="addCoupons" data-ar="نظام كوبونات وخصومات" data-en="Coupons & discounts system">نظام كوبونات وخصومات</label>
+          <span class="price-tag">+1,500</span>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="addBooking" data-price="2000">
+          <label for="addBooking" data-ar="نظام حجز مواعيد" data-en="Booking/reservation system">نظام حجز مواعيد</label>
+          <span class="price-tag">+2,000</span>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="addAccounts" data-price="1800">
+          <label for="addAccounts" data-ar="تسجيل دخول للعملاء" data-en="Customer accounts/login">تسجيل دخول للعملاء</label>
+          <span class="price-tag">+1,800</span>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="addDashboard" data-price="3000">
+          <label for="addDashboard" data-ar="لوحة تحكم (لو مش متضمنة)" data-en="Admin dashboard (if not included)">لوحة تحكم (لو مش متضمنة)</label>
+          <span class="price-tag">+3,000</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step" data-step="5">
+      <div class="step-eyebrow" data-ar="الخطوة ٥" data-en="STEP 5">الخطوة ٥</div>
+      <h2 class="step-title" data-ar="الطلبات والدفع" data-en="Orders & payment">الطلبات والدفع</h2>
+      <div id="ordersSkip" class="skip-note" style="display:none;">
+        <span data-ar="الخطوة دي مش مطلوبة لباقة Starter — هننتقل للي بعدها." data-en="Not needed for the Starter package — moving on.">الخطوة دي مش مطلوبة لباقة Starter — هننتقل للي بعدها.</span>
+      </div>
+      <div id="ordersContent">
+        <div class="field">
+          <label data-ar="طريقة الدفع" data-en="Payment method">طريقة الدفع</label>
+          <div class="choice-row" id="paymentChoice">
+            <label class="choice-pill"><input type="radio" name="payment" value="cod"><span data-ar="كاش عند الاستلام بس" data-en="Cash on delivery only">كاش عند الاستلام بس</span></label>
+            <label class="choice-pill"><input type="radio" name="payment" value="online"><span data-ar="بوابة دفع أونلاين" data-en="Online payment gateway">بوابة دفع أونلاين</span></label>
+            <label class="choice-pill"><input type="radio" name="payment" value="both"><span data-ar="الاتنين" data-en="Both">الاتنين</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label data-ar="مناطق التوصيل" data-en="Delivery areas">مناطق التوصيل</label>
+          <input type="text" id="deliveryAreas" placeholder="مثال: الشرقية بالكامل">
+        </div>
+        <div class="field">
+          <label data-ar="محتاج ربط مع خدمة توصيل خارجية؟" data-en="Need integration with an external delivery service?">محتاج ربط مع خدمة توصيل خارجية؟</label>
+          <div class="choice-row" id="deliveryIntChoice">
+            <label class="choice-pill"><input type="radio" name="deliveryInt" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+            <label class="choice-pill"><input type="radio" name="deliveryInt" value="no"><span data-ar="لا" data-en="No">لا</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step" data-step="6">
+      <div class="step-eyebrow" data-ar="الخطوة ٦" data-en="STEP 6">الخطوة ٦</div>
+      <h2 class="step-title" data-ar="التقنية" data-en="Technical setup">التقنية</h2>
+
+      <div class="field">
+        <label data-ar="عندك دومين واستضافة؟" data-en="Do you have a domain & hosting?">عندك دومين واستضافة؟</label>
+        <div class="choice-row" id="hostingChoice">
+          <label class="choice-pill"><input type="radio" name="hosting" value="has-both"><span data-ar="عندي الاتنين" data-en="I have both">عندي الاتنين</span></label>
+          <label class="choice-pill"><input type="radio" name="hosting" value="has-domain"><span data-ar="عندي دومين بس" data-en="I have domain only">عندي دومين بس</span></label>
+          <label class="choice-pill"><input type="radio" name="hosting" value="none"><span data-ar="محتاج Vyper تظبطهم" data-en="Need Vyper to set them up">محتاج Vyper تظبطهم</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label data-ar="اسم الدومين المطلوب (لو حاضر)" data-en="Desired domain name (if any)">اسم الدومين المطلوب (لو حاضر)</label>
+        <input type="text" id="domainName" placeholder="example.com">
+      </div>
+    </section>
+
+    <!-- STEP 7 -->
+    <section class="step" data-step="7">
+      <div class="step-eyebrow" data-ar="الخطوة ٧" data-en="STEP 7">الخطوة ٧</div>
+      <h2 class="step-title" data-ar="الإدارة والفريق" data-en="Team & management">الإدارة والفريق</h2>
+
+      <div class="field">
+        <label data-ar="مين اللي هيحدّث المحتوى يومياً بعد التسليم؟" data-en="Who will update content daily after delivery?">مين اللي هيحدّث المحتوى يومياً بعد التسليم؟</label>
+        <input type="text" id="managerName" placeholder="مثال: أنا شخصياً / موظف مخصص">
+      </div>
+      <div class="field">
+        <label data-ar="محتاج تدريب على لوحة التحكم؟" data-en="Need training on the admin dashboard?">محتاج تدريب على لوحة التحكم؟</label>
+        <div class="choice-row" id="trainingChoice">
+          <label class="choice-pill"><input type="radio" name="training" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+          <label class="choice-pill"><input type="radio" name="training" value="no"><span data-ar="لا، هنتصرف" data-en="No, we'll manage">لا، هنتصرف</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 8 -->
+    <section class="step" data-step="8">
+      <div class="step-eyebrow" data-ar="الخطوة ٨" data-en="STEP 8">الخطوة ٨</div>
+      <h2 class="step-title" data-ar="الوقت والميزانية" data-en="Timeline & budget">الوقت والميزانية</h2>
+
+      <div class="grid2">
+        <div class="field">
+          <label data-ar="تاريخ إطلاق مستهدف" data-en="Target launch date">تاريخ إطلاق مستهدف</label>
+          <input type="date" id="launchDate">
+        </div>
+        <div class="field">
+          <label data-ar="نطاق الميزانية التقريبي" data-en="Approximate budget range">نطاق الميزانية التقريبي</label>
+          <select id="budgetRange">
+            <option value="u5" data-ar="أقل من 5,000 ج.م" data-en="Under 5,000 EGP">أقل من 5,000 ج.م</option>
+            <option value="5-15" data-ar="5,000 – 15,000 ج.م" data-en="5,000–15,000 EGP">5,000 – 15,000 ج.م</option>
+            <option value="15-30" data-ar="15,000 – 30,000 ج.م" data-en="15,000–30,000 EGP">15,000 – 30,000 ج.م</option>
+            <option value="30+" data-ar="أكتر من 30,000 ج.م" data-en="Over 30,000 EGP">أكتر من 30,000 ج.م</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label data-ar="مهتم باشتراك Vyper Care (صيانة شهرية)؟" data-en="Interested in Vyper Care (monthly maintenance)?">مهتم باشتراك Vyper Care (صيانة شهرية)؟</label>
+        <div class="choice-row" id="careChoice">
+          <label class="choice-pill"><input type="radio" name="care" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+          <label class="choice-pill"><input type="radio" name="care" value="maybe"><span data-ar="ممكن لاحقاً" data-en="Maybe later">ممكن لاحقاً</span></label>
+          <label class="choice-pill"><input type="radio" name="care" value="no"><span data-ar="لا" data-en="No">لا</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 9 -->
+    <section class="step" data-step="9">
+      <div class="step-eyebrow" data-ar="الخطوة ٩" data-en="STEP 9">الخطوة ٩</div>
+      <h2 class="step-title" data-ar="بيانات التواصل والمراجعة" data-en="Contact & review">بيانات التواصل والمراجعة</h2>
+
+      <div class="grid2">
+        <div class="field">
+          <label><span data-ar="الاسم" data-en="Name">الاسم</span> <span class="required-star">*</span></label>
+          <input type="text" id="contactName">
+        </div>
+        <div class="field">
+          <label><span data-ar="رقم واتساب" data-en="WhatsApp number">رقم واتساب</span> <span class="required-star">*</span></label>
+          <input type="tel" id="contactPhone" placeholder="01xxxxxxxxx">
+        </div>
+      </div>
+
+      <div id="reviewSummary"></div>
+
+      <div id="submitStatus" style="margin-top:16px; font-size:13px;"></div>
+    </section>
+
+    <!-- SUCCESS -->
+    <section class="step" data-step="success">
+      <div class="success-wrap">
+        <div class="success-mark">✓</div>
+        <h2 class="step-title" data-ar="تم استلام طلبك" data-en="Your request was received">تم استلام طلبك</h2>
+        <p class="step-sub" style="margin:0 auto 18px;" data-ar="هنراجع التفاصيل ونتواصل معاك خلال 24 ساعة على واتساب." data-en="We'll review the details and reach out on WhatsApp within 24 hours.">هنراجع التفاصيل ونتواصل معاك خلال 24 ساعة على واتساب.</p>
+        <div class="ref-id" id="refIdDisplay"></div>
+      </div>
+    </section>
+
+    <div class="nav-row" id="navRow">
+      <button class="btn btn-ghost" id="btnBack" onclick="goStep(-1)" data-ar="رجوع" data-en="Back">رجوع</button>
+      <button class="btn btn-primary" id="btnNext" onclick="goStep(1)" data-ar="التالي" data-en="Next">التالي</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="price-bar" id="priceBar">
+  <div>
+    <div class="price-bar-label" data-ar="التقدير المبدئي" data-en="ESTIMATED RANGE">التقدير المبدئي</div>
+    <div class="price-bar-value" id="priceValue">—</div>
+  </div>
+  <div class="price-bar-note" data-ar="تقدير تقريبي غير نهائي، السعر الفعلي بيتحدد بعد المراجعة." data-en="A rough, non-final estimate. Final pricing is confirmed after review.">تقدير تقريبي غير نهائي، السعر الفعلي بيتحدد بعد المراجعة.</div>
+</div>
+
+<!-- Firebase (compat SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============ TODO (وليد): ضيف بيانات مشروع Firebase هنا بعد إنشائه ============ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let firebaseReady = false;
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  firebaseReady = true;
+} catch(e) {
+  console.warn("Firebase not configured yet:", e);
+}
+/* =============================================================================== */
+
+let currentStep = 1;
+const totalSteps = 9;
+let currentLang = 'ar';
+
+/* ---------- Language ---------- */
+function setLang(lang){
+  currentLang = lang;
+  document.body.classList.toggle('lang-en', lang === 'en');
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
+  document.getElementById('btnAr').classList.toggle('active', lang === 'ar');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  document.querySelectorAll('[data-ar]').forEach(el=>{
+    if(el.dataset.ar === undefined) return;
+    el.textContent = (lang === 'en' && el.dataset.en) ? el.dataset.en : el.dataset.ar;
+  });
+  document.getElementById('otherTypeName').placeholder = lang === 'en' ? 'Describe your business type' : 'اكتب نوع النشاط';
+  renderIncluded();
+  renderReview();
+  renderSocialInputs();
+  updatePrice();
+}
+
+/* ---------- Snake rail ---------- */
+const railPoints = [[30,40],[90,145],[30,250],[90,355],[30,460],[90,565],[30,670],[90,775],[30,880]];
+function renderRail(){
+  const g = document.getElementById('railNodes');
+  g.innerHTML = '';
+  railPoints.forEach((pt,i)=>{
+    const step = i+1;
+    const cls = step < currentStep ? 'done' : (step === currentStep ? 'current' : '');
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', pt[0]); circle.setAttribute('cy', pt[1]); circle.setAttribute('r', 15);
+    circle.setAttribute('class', 'rail-node ' + cls);
+    g.appendChild(circle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', pt[0]); text.setAttribute('y', pt[1]+5);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('class','rail-num ' + cls);
+    text.textContent = step;
+    g.appendChild(text);
+  });
+  const pct = ((currentStep-1)/(totalSteps-1))*100;
+  document.getElementById('snakeHead').style.offsetDistance = pct + '%';
+  document.getElementById('mobileFill').style.width = ((currentStep/totalSteps)*100) + '%';
+  document.getElementById('mobileStepNow').textContent = currentStep;
+  document.getElementById('stepNowLabel').textContent = currentStep;
+}
+
+/* ---------- Step navigation ---------- */
+function startBrief(){
+  currentStep = 1;
+  showStep(1);
+  renderRail();
+}
+
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const target = document.querySelector('.step[data-step="'+n+'"]');
+  if(target) target.classList.add('active');
+  const isCoverOrSuccess = (n === 'success' || n === 0);
+  document.getElementById('navRow').style.display = isCoverOrSuccess ? 'none' : 'flex';
+  document.getElementById('priceBar').style.display = isCoverOrSuccess ? 'none' : 'flex';
+  document.querySelector('.rail-col') && (document.querySelector('.rail-col').style.visibility = (n===0) ? 'hidden' : 'visible');
+  document.querySelector('.mobile-progress').style.display = (n===0) ? 'none' : '';
+  document.getElementById('btnBack').style.visibility = (n === 1) ? 'hidden' : 'visible';
+  document.getElementById('btnNext').textContent = (n === 9)
+    ? (currentLang === 'en' ? 'Submit request' : 'إرسال الطلب')
+    : (currentLang === 'en' ? 'Next' : 'التالي');
+  if(n === 5){
+    const pkg = getSelectedPackage();
+    const skip = pkg === 'starter';
+    document.getElementById('ordersSkip').style.display = skip ? 'block' : 'none';
+    document.getElementById('ordersContent').style.display = skip ? 'none' : 'block';
+  }
+  if(n === 4) renderIncluded();
+  if(n === 9) renderReview();
+}
+
+function goStep(dir){
+  let next = currentStep + dir;
+  // auto-skip step5 for starter package when going forward
+  if(dir === 1 && currentStep === 4 && getSelectedPackage() === 'starter'){
+    next = 6;
+  }
+  if(dir === -1 && currentStep === 6 && getSelectedPackage() === 'starter'){
+    next = 4;
+  }
+  if(next < 1) next = 1;
+  if(next > totalSteps){
+    submitBrief();
+    return;
+  }
+  currentStep = next;
+  showStep(currentStep);
+  renderRail();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- Choice pill styling ---------- */
+document.addEventListener('change', (e)=>{
+  if(e.target.matches('.choice-pill input')){
+    const name = e.target.name;
+    document.querySelectorAll('input[name="'+name+'"]').forEach(inp=>{
+      inp.closest('.choice-pill').classList.toggle('on', inp.checked);
+    });
+  }
+  if(e.target.matches('.pkg-card input')){
+    document.querySelectorAll('.pkg-card').forEach(c=>c.classList.remove('selected'));
+    e.target.closest('.pkg-card').classList.add('selected');
+    renderIncluded();
+  }
+  updatePrice();
+});
+
+function getSelectedPackage(){
+  const el = document.querySelector('input[name="package"]:checked');
+  return el ? el.value : null;
+}
+
+/* ---------- Included features per package ---------- */
+const includedMap = {
+  starter: [
+    {ar:'صفحة واحدة عربي/إنجليزي', en:'Single page, AR/EN'},
+    {ar:'تواصل واتساب مباشر', en:'Direct WhatsApp contact'}
+  ],
+  commerce: [
+    {ar:'موقع كامل متعدد الصفحات', en:'Full multi-page site'},
+    {ar:'كارت + واتساب checkout', en:'Cart + WhatsApp checkout'},
+    {ar:'قوائم منتجات ديناميكية', en:'Dynamic product menus'},
+    {ar:'لوحة تحكم بسيطة', en:'Simple admin dashboard'}
+  ],
+  suite: [
+    {ar:'كل حاجة في Commerce', en:'Everything in Commerce'},
+    {ar:'نظام POS كامل', en:'Full POS system'},
+    {ar:'إدارة أوردرات وتقارير', en:'Order management & reports'},
+    {ar:'دعم فروع متعددة', en:'Multi-branch support'}
+  ]
+};
+function renderIncluded(){
+  const pkg = getSelectedPackage() || 'starter';
+  const list = includedMap[pkg];
+  const container = document.getElementById('includedList');
+  container.innerHTML = list.map(item=>`
+    <div class="check-item locked">
+      <input type="checkbox" checked disabled>
+      <label>${currentLang==='en' ? item.en : item.ar}</label>
+      <span class="price-tag" data-ar="متضمن" data-en="Included">${currentLang==='en' ? 'Included' : 'متضمن'}</span>
+    </div>`).join('');
+}
+
+/* ---------- Price estimate ---------- */
+const packageBase = { starter:4500, commerce:11000, suite:25000 };
+function updatePrice(){
+  const pkg = getSelectedPackage();
+  if(!pkg){ document.getElementById('priceValue').textContent = '—'; return; }
+  let base = packageBase[pkg];
+
+  document.querySelectorAll('#addCoupons, #addBooking, #addAccounts, #addDashboard').forEach(el=>{
+    if(el.checked) base += parseInt(el.dataset.price,10);
+  });
+
+  const branches = parseInt(document.getElementById('branchCount').value,10) || 1;
+  if(pkg === 'suite' && branches > 1) base += (branches - 1) * 3000;
+
+  const photos = document.querySelector('input[name="photos"]:checked');
+  if(photos && photos.value === 'none') base += 1200;
+  const copy = document.querySelector('input[name="copy"]:checked');
+  if(copy && copy.value === 'none') base += 800;
+
+  const min = Math.round(base * 0.85 / 100) * 100;
+  const max = Math.round(base * 1.15 / 100) * 100;
+  document.getElementById('priceValue').textContent =
+    min.toLocaleString() + ' – ' + max.toLocaleString() + ' ' + (currentLang==='en' ? 'EGP' : 'ج.م');
+}
+
+/* ---------- Review ---------- */
+function renderReview(){
+  const pkg = getSelectedPackage() || '-';
+  const val = id => document.getElementById(id) ? document.getElementById(id).value : '';
+  const radio = name => { const el = document.querySelector('input[name="'+name+'"]:checked'); return el ? el.value : '-'; };
+  const L = currentLang;
+  const T = (ar,en) => L==='en' ? en : ar;
+
+  document.getElementById('reviewSummary').innerHTML = `
+    <div class="review-block">
+      <h4>${T('البراند','Brand')}</h4>
+      <div class="review-line"><span>${T('الاسم','Name')}</span><span>${val('brandNameAr') || val('brandNameEn') || '-'}</span></div>
+      <div class="review-line"><span>${T('النشاط','Type')}</span><span>${document.getElementById('businessType').selectedOptions[0].textContent}</span></div>
+      <div class="review-line"><span>${T('الفروع','Branches')}</span><span>${val('branchCount')}</span></div>
+    </div>
+    <div class="review-block">
+      <h4>${T('الباقة','Package')}</h4>
+      <div class="review-line"><span>${T('المختارة','Selected')}</span><span>${pkg}</span></div>
+    </div>
+    <div class="review-block">
+      <h4>${T('التواصل','Contact')}</h4>
+      <div class="review-line"><span>${T('الاسم','Name')}</span><span>${val('contactName') || '-'}</span></div>
+      <div class="review-line"><span>${T('واتساب','WhatsApp')}</span><span>${val('contactPhone') || '-'}</span></div>
+    </div>
+  `;
+}
+
+/* ---------- Submit to Firebase ---------- */
+function collectData(){
+  const val = id => document.getElementById(id) ? document.getElementById(id).value : '';
+  const radio = name => { const el = document.querySelector('input[name="'+name+'"]:checked'); return el ? el.value : null; };
+  const checked = id => document.getElementById(id) ? document.getElementById(id).checked : false;
+
+  return {
+    lang: currentLang,
+    brand: {
+      nameAr: val('brandNameAr'), nameEn: val('brandNameEn'),
+      businessType: val('businessType'),
+      businessTypeOther: val('businessType') === 'other' ? val('otherTypeName') : null,
+      branchCount: val('branchCount'),
+      branchLocations: val('branchLocations'),
+      socialLinks: { ...selectedSocialPlatforms },
+      customSocialLinks: customSocialRows.filter(r=>r.name || r.link),
+      identity: radio('identity')
+    },
+    content: {
+      photos: radio('photos'), productCount: val('productCount'), copy: radio('copy')
+    },
+    package: getSelectedPackage(),
+    addons: {
+      coupons: checked('addCoupons'), booking: checked('addBooking'),
+      accounts: checked('addAccounts'), dashboard: checked('addDashboard')
+    },
+    orders: {
+      payment: radio('payment'), deliveryAreas: val('deliveryAreas'), deliveryIntegration: radio('deliveryInt')
+    },
+    tech: { hosting: radio('hosting'), domain: val('domainName') },
+    team: { manager: val('managerName'), training: radio('training') },
+    timeline: { launchDate: val('launchDate'), budget: val('budgetRange'), care: radio('care') },
+    contact: { name: val('contactName'), phone: val('contactPhone') },
+    priceEstimateText: document.getElementById('priceValue').textContent,
+    createdAt: firebaseReady ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
+    status: 'new'
+  };
+}
+
+function submitBrief(){
+  const name = document.getElementById('contactName').value.trim();
+  const phone = document.getElementById('contactPhone').value.trim();
+  const status = document.getElementById('submitStatus');
+  if(!name || !phone){
+    status.style.color = 'var(--danger)';
+    status.textContent = currentLang==='en' ? 'Please fill in your name and WhatsApp number.' : 'من فضلك اكتب الاسم ورقم الواتساب.';
+    return;
+  }
+  if(!getSelectedPackage()){
+    status.style.color = 'var(--danger)';
+    status.textContent = currentLang==='en' ? 'Please choose a package first.' : 'من فضلك اختار الباقة الأول.';
+    return;
+  }
+  status.style.color = 'var(--muted)';
+  status.textContent = currentLang==='en' ? 'Sending...' : 'جاري الإرسال...';
+
+  const data = collectData();
+
+  if(!firebaseReady){
+    status.style.color = 'var(--danger)';
+    status.textContent = currentLang==='en'
+      ? 'Firebase is not configured yet — the request was not saved. (Dev note: add firebaseConfig.)'
+      : 'Firebase لسه مش متظبط — الطلب متحفظش. (ملحوظة للمطور: ضيف firebaseConfig)';
+    console.log('Brief data (not saved):', data);
+    return;
+  }
+
+  db.collection('vyper_briefs').add(data)
+    .then(docRef=>{
+      document.getElementById('refIdDisplay').textContent = 'REF-' + docRef.id.slice(0,8).toUpperCase();
+      currentStep = 'success';
+      showStep('success');
+    })
+    .catch(err=>{
+      status.style.color = 'var(--danger)';
+      status.textContent = currentLang==='en' ? 'Something went wrong. Please try again.' : 'حصلت مشكلة، حاول تاني.';
+      console.error(err);
+    });
+}
+
+/* ---------- Business type: custom "other" box ---------- */
+document.getElementById('businessType').addEventListener('change', (e)=>{
+  document.getElementById('otherTypeBox').style.display = (e.target.value === 'other') ? 'block' : 'none';
+});
+
+/* ---------- Social media chips ---------- */
+const socialPlatformLabels = {
+  instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok',
+  snapchat: 'Snapchat', whatsapp: 'WhatsApp', website: { ar:'الموقع الحالي', en:'Website' }
+};
+let selectedSocialPlatforms = {};
+let customSocialRows = [];
+let customSocialCounter = 0;
+
+function renderSocialInputs(){
+  const container = document.getElementById('socialLinksInputs');
+  let html = '';
+  Object.keys(selectedSocialPlatforms).forEach(platform=>{
+    const label = socialPlatformLabels[platform];
+    const labelText = typeof label === 'object' ? (currentLang==='en' ? label.en : label.ar) : label;
+    const val = selectedSocialPlatforms[platform] || '';
+    html += `
+      <div class="social-link-row">
+        <span class="platform-tag">${labelText}</span>
+        <input type="text" placeholder="${currentLang==='en' ? 'Paste the link' : 'حط اللينك هنا'}"
+               value="${val}" data-platform="${platform}" oninput="selectedSocialPlatforms['${platform}']=this.value">
+        <button type="button" class="remove-link" onclick="removeSocialPlatform('${platform}')">×</button>
+      </div>`;
+  });
+  customSocialRows.forEach(row=>{
+    html += `
+      <div class="social-link-row">
+        <input type="text" class="custom-platform-name" placeholder="${currentLang==='en' ? 'Platform name' : 'اسم المنصة'}"
+               value="${row.name}" oninput="updateCustomSocial(${row.id}, 'name', this.value)">
+        <input type="text" placeholder="${currentLang==='en' ? 'Paste the link' : 'حط اللينك هنا'}"
+               value="${row.link}" oninput="updateCustomSocial(${row.id}, 'link', this.value)">
+        <button type="button" class="remove-link" onclick="removeCustomSocial(${row.id})">×</button>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+function toggleSocialPlatform(platform, btn){
+  if(selectedSocialPlatforms.hasOwnProperty(platform)){
+    delete selectedSocialPlatforms[platform];
+    btn.classList.remove('on');
+  } else {
+    selectedSocialPlatforms[platform] = '';
+    btn.classList.add('on');
+  }
+  renderSocialInputs();
+}
+function removeSocialPlatform(platform){
+  delete selectedSocialPlatforms[platform];
+  document.querySelector('.social-chip[data-platform="'+platform+'"]').classList.remove('on');
+  renderSocialInputs();
+}
+function updateCustomSocial(id, field, value){
+  const row = customSocialRows.find(r=>r.id===id);
+  if(row) row[field] = value;
+}
+function removeCustomSocial(id){
+  customSocialRows = customSocialRows.filter(r=>r.id!==id);
+  renderSocialInputs();
+}
+document.querySelectorAll('.social-chip').forEach(btn=>{
+  btn.addEventListener('click', ()=>toggleSocialPlatform(btn.dataset.platform, btn));
+});
+document.getElementById('addCustomSocial').addEventListener('click', ()=>{
+  customSocialCounter++;
+  customSocialRows.push({ id: customSocialCounter, name:'', link:'' });
+  renderSocialInputs();
+});
+
+/* ---------- Init ---------- */
+document.getElementById('branchCount').addEventListener('input', updatePrice);
+renderRail();
+renderIncluded();
+updatePrice();
+</script>
+</body>
+</html>
