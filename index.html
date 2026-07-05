@@ -37,8 +37,8 @@
     border-bottom:1px solid var(--line);
   }
   .brand{display:flex; align-items:center; gap:10px;}
-  .brand-mark{font-weight:800; font-size:20px; letter-spacing:1px; color:var(--green); font-family:var(--ff-en);}
-  .brand-tag{font-size:10px; letter-spacing:3px; color:var(--muted); font-family:var(--ff-en); border-inline-start:1px solid var(--line); padding-inline-start:10px;}
+  .brand-mark{font-weight:800; font-size:21px; letter-spacing:2.5px; color:var(--green); font-family:var(--ff-en);}
+  .brand-tag{font-size:10px; letter-spacing:4px; color:var(--muted); font-family:var(--ff-en); border-inline-start:1px solid var(--line); padding-inline-start:10px; text-transform:uppercase;}
   .top-actions{display:flex; align-items:center; gap:14px;}
   .step-indicator{font-size:12px; color:var(--muted); font-family:var(--ff-en); letter-spacing:1px;}
   .lang-switch{
@@ -94,7 +94,8 @@
   @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
 
   .step-eyebrow{ font-family:var(--ff-en); font-size:11px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:10px; }
-  .step-title{ font-size:28px; font-weight:800; margin-bottom:8px; letter-spacing:-.5px; }
+  .step-title{ font-size:28px; font-weight:800; margin-bottom:8px; letter-spacing:0; }
+  body.lang-en .step-title{ letter-spacing:-.4px; }
   .step-sub{ font-size:14px; color:var(--muted); margin-bottom:32px; max-width:520px; line-height:1.7; }
 
   .field{ margin-bottom:22px; }
@@ -185,6 +186,11 @@
   .ref-id{ font-family:var(--ff-en); color:var(--green); font-weight:700; letter-spacing:1px; }
 
   .required-star{ color:var(--danger); }
+  .purpose-fields{ display:none; }
+  .purpose-fields.active{ display:block; animation:fadeUp .3s ease; }
+  .field-error-msg{ color:var(--danger); font-size:12px; margin-top:7px; display:none; }
+  .field-error-msg.show{ display:block; }
+  .field.has-error input, .field.has-error select{ border-color:var(--danger); }
 
   /* ---------- Social chips ---------- */
   .social-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
@@ -226,7 +232,8 @@
     padding:20px 0 80px; max-width:640px;
   }
   .cover-eyebrow{ font-family:var(--ff-en); font-size:12px; letter-spacing:4px; color:var(--green); margin-bottom:22px; text-transform:uppercase; }
-  .cover-title{ font-size:44px; font-weight:800; line-height:1.25; letter-spacing:-1px; margin-bottom:20px; }
+  .cover-title{ font-size:44px; font-weight:800; line-height:1.35; letter-spacing:0; margin-bottom:20px; }
+  body.lang-en .cover-title{ letter-spacing:-.8px; line-height:1.25; }
   .cover-title .accent{ color:var(--green); }
   .cover-sub{ font-size:16px; color:var(--muted); line-height:1.8; margin-bottom:36px; max-width:480px; }
   .cover-meta{ display:flex; gap:28px; margin-bottom:40px; flex-wrap:wrap; }
@@ -256,7 +263,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="brand-mark">VYPER</span>
-    <span class="brand-tag" data-ar="ابدأ مشروعك" data-en="START YOUR PROJECT">ابدأ مشروعك</span>
+    <span class="brand-tag">MAKE YOURS</span>
   </div>
   <div class="top-actions">
     <span class="step-indicator"><span id="stepNowLabel">1</span> / 9</span>
@@ -317,6 +324,7 @@
         <div class="field">
           <label><span data-ar="اسم البراند (عربي)" data-en="Brand name (Arabic)">اسم البراند (عربي)</span> <span class="required-star">*</span></label>
           <input type="text" id="brandNameAr" placeholder="مثال: سبارك">
+          <div class="field-error-msg" id="err-brandNameAr"></div>
         </div>
         <div class="field">
           <label data-ar="اسم البراند (إنجليزي)" data-en="Brand name (English)">اسم البراند (إنجليزي)</label>
@@ -327,6 +335,7 @@
       <div class="field">
         <label><span data-ar="نوع النشاط" data-en="Business type">نوع النشاط</span> <span class="required-star">*</span></label>
         <select id="businessType">
+          <option value="" data-ar="اختار نوع النشاط" data-en="Choose a business type">اختار نوع النشاط</option>
           <option value="restaurant" data-ar="مطعم" data-en="Restaurant">مطعم</option>
           <option value="cafe" data-ar="كافيه" data-en="Cafe">كافيه</option>
           <option value="clinic" data-ar="عيادة طبية" data-en="Medical clinic">عيادة طبية</option>
@@ -337,9 +346,24 @@
           <option value="service" data-ar="خدمة (استشارات، صيانة، إلخ)" data-en="Service business">خدمة (استشارات، صيانة، إلخ)</option>
           <option value="other" data-ar="أخرى" data-en="Other">أخرى</option>
         </select>
+        <div class="field-error-msg" id="err-businessType"></div>
         <div id="otherTypeBox" style="display:none; margin-top:12px;">
           <input type="text" id="otherTypeName" placeholder="اكتب نوع النشاط">
+          <div class="field-error-msg" id="err-otherTypeName"></div>
         </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ar="طبيعة عمل الموقع الأساسية" data-en="What is the site mainly for">طبيعة عمل الموقع الأساسية</span> <span class="required-star">*</span></label>
+        <p class="hint" style="margin-top:-2px; margin-bottom:12px;" data-ar="ده بيحدد الأسئلة الجاية وبيبقى مناسب لطبيعة شغلك بالظبط." data-en="This shapes the next questions to match exactly what you do.">ده بيحدد الأسئلة الجاية وبيبقى مناسب لطبيعة شغلك بالظبط.</p>
+        <div class="choice-row" id="purposeChoice">
+          <label class="choice-pill"><input type="radio" name="sitePurpose" value="products"><span data-ar="بيع منتجات" data-en="Selling products">بيع منتجات</span></label>
+          <label class="choice-pill"><input type="radio" name="sitePurpose" value="services"><span data-ar="تقديم خدمات" data-en="Offering services">تقديم خدمات</span></label>
+          <label class="choice-pill"><input type="radio" name="sitePurpose" value="booking"><span data-ar="حجز مواعيد وتواصل مع العملاء" data-en="Bookings & client contact">حجز مواعيد وتواصل مع العملاء</span></label>
+          <label class="choice-pill"><input type="radio" name="sitePurpose" value="showcase"><span data-ar="عرض أعمال (بورتفوليو)" data-en="Portfolio / showcase">عرض أعمال (بورتفوليو)</span></label>
+          <label class="choice-pill"><input type="radio" name="sitePurpose" value="info"><span data-ar="تعريف وتواصل فقط" data-en="Info & contact only">تعريف وتواصل فقط</span></label>
+        </div>
+        <div class="field-error-msg" id="err-sitePurpose"></div>
       </div>
 
       <div class="grid2">
@@ -385,7 +409,7 @@
       <p class="step-sub" data-ar="ده بيأثر مباشرة في وقت التنفيذ والسعر التقريبي." data-en="This directly affects build time and the estimated price.">ده بيأثر مباشرة في وقت التنفيذ والسعر التقريبي.</p>
 
       <div class="field">
-        <label data-ar="عندك صور منتجات/قائمة احترافية؟" data-en="Do you have professional product/menu photos?">عندك صور منتجات/قائمة احترافية؟</label>
+        <label id="photosLabel" data-ar="عندك صور احترافية جاهزة؟" data-en="Do you have professional photos ready?">عندك صور احترافية جاهزة؟</label>
         <div class="choice-row" id="photosChoice">
           <label class="choice-pill"><input type="radio" name="photos" value="ready"><span data-ar="جاهزة" data-en="Ready">جاهزة</span></label>
           <label class="choice-pill"><input type="radio" name="photos" value="partial"><span data-ar="جزء بس" data-en="Some of them">جزء بس</span></label>
@@ -393,13 +417,96 @@
         </div>
       </div>
 
-      <div class="field">
-        <label data-ar="عدد المنتجات/الأصناف التقريبي" data-en="Approximate number of products/items">عدد المنتجات/الأصناف التقريبي</label>
-        <input type="number" id="productCount" min="0" placeholder="مثال: 55">
+      <!-- PRODUCTS -->
+      <div class="purpose-fields" id="pf-products">
+        <div class="field">
+          <label data-ar="عدد المنتجات التقريبي" data-en="Approximate number of products">عدد المنتجات التقريبي <span class="required-star">*</span></label>
+          <input type="number" id="prodCount" min="0" placeholder="مثال: 55">
+          <div class="field-error-msg" id="err-prodCount"></div>
+        </div>
+        <div class="field">
+          <label data-ar="فئات المنتجات الرئيسية" data-en="Main product categories">فئات المنتجات الرئيسية</label>
+          <input type="text" id="prodCategories" placeholder="مثال: مشروبات، حلويات، وجبات">
+        </div>
+        <div class="field">
+          <label data-ar="المنتجات ليها اختيارات (مقاس، لون، نكهة)؟" data-en="Do products have variants (size, color, flavor)?">المنتجات ليها اختيارات (مقاس، لون، نكهة)؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="prodVariants" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="prodVariants" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="purpose-fields" id="pf-services">
+        <div class="field">
+          <label data-ar="عدد الخدمات المقدمة" data-en="Number of services offered">عدد الخدمات المقدمة <span class="required-star">*</span></label>
+          <input type="number" id="svcCount" min="0" placeholder="مثال: 8">
+          <div class="field-error-msg" id="err-svcCount"></div>
+        </div>
+        <div class="field">
+          <label data-ar="أسعار الخدمات هتتعرض في الموقع ولا حسب الطلب؟" data-en="Are prices shown publicly or on request?">أسعار الخدمات هتتعرض في الموقع ولا حسب الطلب؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="svcPricing" value="public"><span data-ar="أسعار ثابتة معروضة" data-en="Fixed & public">أسعار ثابتة معروضة</span></label><label class="choice-pill"><input type="radio" name="svcPricing" value="request"><span data-ar="حسب الطلب" data-en="On request">حسب الطلب</span></label></div>
+        </div>
+        <div class="field">
+          <label data-ar="محتاج زرار استفسار/طلب لكل خدمة؟" data-en="Need an inquiry button per service?">محتاج زرار استفسار/طلب لكل خدمة؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="svcInquiry" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="svcInquiry" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
+      </div>
+
+      <!-- BOOKING / HUMAN INTERACTION -->
+      <div class="purpose-fields" id="pf-booking">
+        <div class="field">
+          <label data-ar="عدد مقدمي الخدمة (دكاترة/مدرّسين/متخصصين)" data-en="Number of providers (doctors/tutors/specialists)">عدد مقدمي الخدمة (دكاترة/مدرّسين/متخصصين) <span class="required-star">*</span></label>
+          <input type="number" id="bookingProvidersCount" min="0" placeholder="مثال: 3">
+          <div class="field-error-msg" id="err-bookingProvidersCount"></div>
+        </div>
+        <div class="field">
+          <label data-ar="مدة الجلسة/الموعد التقريبية" data-en="Approximate session/appointment duration">مدة الجلسة/الموعد التقريبية</label>
+          <input type="text" id="bookingDuration" placeholder="مثال: 30 دقيقة">
+        </div>
+        <div class="field">
+          <label data-ar="محتاج نظام حجز مواعيد بتقويم أونلاين؟" data-en="Need an online calendar booking system?">محتاج نظام حجز مواعيد بتقويم أونلاين؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="bookingCalendar" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="bookingCalendar" value="no"><span data-ar="لا، حجز بسيط عن طريق واتساب" data-en="No, simple WhatsApp booking">لا، حجز بسيط عن طريق واتساب</span></label></div>
+        </div>
+        <div class="field">
+          <label data-ar="محتاج فورم بيانات للعميل الجديد (اسم، رقم، سبب الزيارة)؟" data-en="Need an intake form for new clients (name, phone, reason)?">محتاج فورم بيانات للعميل الجديد (اسم، رقم، سبب الزيارة)؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="bookingIntake" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="bookingIntake" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
+      </div>
+
+      <!-- SHOWCASE -->
+      <div class="purpose-fields" id="pf-showcase">
+        <div class="field">
+          <label data-ar="عدد الأعمال المطلوب عرضها" data-en="Number of projects to showcase">عدد الأعمال المطلوب عرضها <span class="required-star">*</span></label>
+          <input type="number" id="showcaseCount" min="0" placeholder="مثال: 12">
+          <div class="field-error-msg" id="err-showcaseCount"></div>
+        </div>
+        <div class="field">
+          <label data-ar="تصنيفات الأعمال" data-en="Work categories">تصنيفات الأعمال</label>
+          <input type="text" id="showcaseCategories" placeholder="مثال: تصوير، تصميم داخلي، فيديو">
+        </div>
+        <div class="field">
+          <label data-ar="عندك آراء/تقييمات عملاء جاهزة؟" data-en="Do you have client testimonials ready?">عندك آراء/تقييمات عملاء جاهزة؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="showcaseTestimonials" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="showcaseTestimonials" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
+      </div>
+
+      <!-- INFO ONLY -->
+      <div class="purpose-fields" id="pf-info">
+        <div class="field">
+          <label data-ar="عدد أعضاء الفريق اللي هيتعرضوا في الموقع" data-en="Number of team members to feature">عدد أعضاء الفريق اللي هيتعرضوا في الموقع</label>
+          <input type="number" id="infoTeamCount" min="0" placeholder="مثال: 4">
+        </div>
+        <div class="field">
+          <label data-ar="محتاج قسم أسئلة شائعة (FAQ)؟" data-en="Need a FAQ section?">محتاج قسم أسئلة شائعة (FAQ)؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="infoFaq" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="infoFaq" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
+        <div class="field">
+          <label data-ar="محتاج تعرض شهادات/تراخيص/اعتمادات؟" data-en="Need to display certifications/licenses?">محتاج تعرض شهادات/تراخيص/اعتمادات؟</label>
+          <div class="choice-row"><label class="choice-pill"><input type="radio" name="infoCertifications" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label><label class="choice-pill"><input type="radio" name="infoCertifications" value="no"><span data-ar="لا" data-en="No">لا</span></label></div>
+        </div>
       </div>
 
       <div class="field">
-        <label data-ar="عندك نصوص جاهزة (وصف البراند، أوصاف المنتجات)؟" data-en="Do you have ready copy (brand description, product descriptions)?">عندك نصوص جاهزة (وصف البراند، أوصاف المنتجات)؟</label>
+        <label data-ar="عندك نصوص جاهزة (وصف البراند وباقي المحتوى)؟" data-en="Do you have ready copy (brand description & other content)?">عندك نصوص جاهزة (وصف البراند وباقي المحتوى)؟</label>
         <div class="choice-row" id="copyChoice">
           <label class="choice-pill"><input type="radio" name="copy" value="ready"><span data-ar="جاهزة" data-en="Ready">جاهزة</span></label>
           <label class="choice-pill"><input type="radio" name="copy" value="none"><span data-ar="محتاج حد يكتبها" data-en="Need it written">محتاج حد يكتبها</span></label>
@@ -447,9 +554,8 @@
           </ul>
         </label>
       </div>
+      <div class="field-error-msg" id="err-package"></div>
     </section>
-
-    <!-- STEP 4 -->
     <section class="step" data-step="4">
       <div class="step-eyebrow" data-ar="الخطوة ٤" data-en="STEP 4">الخطوة ٤</div>
       <h2 class="step-title" data-ar="الصفحات والمميزات" data-en="Pages & features">الصفحات والمميزات</h2>
@@ -488,30 +594,55 @@
     <!-- STEP 5 -->
     <section class="step" data-step="5">
       <div class="step-eyebrow" data-ar="الخطوة ٥" data-en="STEP 5">الخطوة ٥</div>
-      <h2 class="step-title" data-ar="الطلبات والدفع" data-en="Orders & payment">الطلبات والدفع</h2>
+      <h2 class="step-title" data-ar="المدفوعات والتوصيل" data-en="Payments & delivery">المدفوعات والتوصيل</h2>
       <div id="ordersSkip" class="skip-note" style="display:none;">
-        <span data-ar="الخطوة دي مش مطلوبة لباقة Starter — هننتقل للي بعدها." data-en="Not needed for the Starter package — moving on.">الخطوة دي مش مطلوبة لباقة Starter — هننتقل للي بعدها.</span>
+        <span data-ar="الخطوة دي مش مطلوبة حسب اختيارك في الخطوة الأولى — هننتقل للي بعدها." data-en="Not needed based on your earlier answer — moving on.">الخطوة دي مش مطلوبة حسب اختيارك في الخطوة الأولى — هننتقل للي بعدها.</span>
       </div>
       <div id="ordersContent">
+
         <div class="field">
+          <label data-ar="نشاطك محتاج يحصّل مدفوعات من خلال الموقع؟" data-en="Does your business need to collect payments through the site?">نشاطك محتاج يحصّل مدفوعات من خلال الموقع؟</label>
+          <div class="choice-row" id="hasPaymentsChoice">
+            <label class="choice-pill"><input type="radio" name="hasPayments" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+            <label class="choice-pill"><input type="radio" name="hasPayments" value="no"><span data-ar="لا، مفيش مدفوعات مباشرة" data-en="No direct payments">لا، مفيش مدفوعات مباشرة</span></label>
+          </div>
+          <div class="field-error-msg" id="err-hasPayments"></div>
+        </div>
+
+        <div class="field" id="paymentMethodField" style="display:none;">
           <label data-ar="طريقة الدفع" data-en="Payment method">طريقة الدفع</label>
           <div class="choice-row" id="paymentChoice">
-            <label class="choice-pill"><input type="radio" name="payment" value="cod"><span data-ar="كاش عند الاستلام بس" data-en="Cash on delivery only">كاش عند الاستلام بس</span></label>
+            <label class="choice-pill"><input type="radio" name="payment" value="cod"><span data-ar="كاش عند الاستلام/الحضور" data-en="Cash on delivery/arrival">كاش عند الاستلام/الحضور</span></label>
             <label class="choice-pill"><input type="radio" name="payment" value="online"><span data-ar="بوابة دفع أونلاين" data-en="Online payment gateway">بوابة دفع أونلاين</span></label>
             <label class="choice-pill"><input type="radio" name="payment" value="both"><span data-ar="الاتنين" data-en="Both">الاتنين</span></label>
           </div>
+          <div class="field-error-msg" id="err-payment"></div>
         </div>
+
         <div class="field">
-          <label data-ar="مناطق التوصيل" data-en="Delivery areas">مناطق التوصيل</label>
-          <input type="text" id="deliveryAreas" placeholder="مثال: الشرقية بالكامل">
+          <label data-ar="نشاطك محتاج توصيل؟" data-en="Does your business need delivery?">نشاطك محتاج توصيل؟</label>
+          <div class="choice-row" id="hasDeliveryChoice">
+            <label class="choice-pill"><input type="radio" name="hasDelivery" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+            <label class="choice-pill"><input type="radio" name="hasDelivery" value="no"><span data-ar="لا، مش محتاج توصيل" data-en="No delivery needed">لا، مش محتاج توصيل</span></label>
+          </div>
+          <div class="field-error-msg" id="err-hasDelivery"></div>
         </div>
-        <div class="field">
-          <label data-ar="محتاج ربط مع خدمة توصيل خارجية؟" data-en="Need integration with an external delivery service?">محتاج ربط مع خدمة توصيل خارجية؟</label>
-          <div class="choice-row" id="deliveryIntChoice">
-            <label class="choice-pill"><input type="radio" name="deliveryInt" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
-            <label class="choice-pill"><input type="radio" name="deliveryInt" value="no"><span data-ar="لا" data-en="No">لا</span></label>
+
+        <div id="deliveryDetailsField" style="display:none;">
+          <div class="field">
+            <label data-ar="مناطق التوصيل" data-en="Delivery areas">مناطق التوصيل</label>
+            <input type="text" id="deliveryAreas" placeholder="مثال: الشرقية بالكامل">
+            <div class="field-error-msg" id="err-deliveryAreas"></div>
+          </div>
+          <div class="field">
+            <label data-ar="محتاج ربط مع خدمة توصيل خارجية؟" data-en="Need integration with an external delivery service?">محتاج ربط مع خدمة توصيل خارجية؟</label>
+            <div class="choice-row" id="deliveryIntChoice">
+              <label class="choice-pill"><input type="radio" name="deliveryInt" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
+              <label class="choice-pill"><input type="radio" name="deliveryInt" value="no"><span data-ar="لا" data-en="No">لا</span></label>
+            </div>
           </div>
         </div>
+
       </div>
     </section>
 
@@ -527,6 +658,7 @@
           <label class="choice-pill"><input type="radio" name="hosting" value="has-domain"><span data-ar="عندي دومين بس" data-en="I have domain only">عندي دومين بس</span></label>
           <label class="choice-pill"><input type="radio" name="hosting" value="none"><span data-ar="محتاج Vyper تظبطهم" data-en="Need Vyper to set them up">محتاج Vyper تظبطهم</span></label>
         </div>
+        <div class="field-error-msg" id="err-hosting"></div>
       </div>
       <div class="field">
         <label data-ar="اسم الدومين المطلوب (لو حاضر)" data-en="Desired domain name (if any)">اسم الدومين المطلوب (لو حاضر)</label>
@@ -542,6 +674,7 @@
       <div class="field">
         <label data-ar="مين اللي هيحدّث المحتوى يومياً بعد التسليم؟" data-en="Who will update content daily after delivery?">مين اللي هيحدّث المحتوى يومياً بعد التسليم؟</label>
         <input type="text" id="managerName" placeholder="مثال: أنا شخصياً / موظف مخصص">
+        <div class="field-error-msg" id="err-managerName"></div>
       </div>
       <div class="field">
         <label data-ar="محتاج تدريب على لوحة التحكم؟" data-en="Need training on the admin dashboard?">محتاج تدريب على لوحة التحكم؟</label>
@@ -549,6 +682,7 @@
           <label class="choice-pill"><input type="radio" name="training" value="yes"><span data-ar="نعم" data-en="Yes">نعم</span></label>
           <label class="choice-pill"><input type="radio" name="training" value="no"><span data-ar="لا، هنتصرف" data-en="No, we'll manage">لا، هنتصرف</span></label>
         </div>
+        <div class="field-error-msg" id="err-training"></div>
       </div>
     </section>
 
@@ -563,13 +697,15 @@
           <input type="date" id="launchDate">
         </div>
         <div class="field">
-          <label data-ar="نطاق الميزانية التقريبي" data-en="Approximate budget range">نطاق الميزانية التقريبي</label>
+          <label data-ar="نطاق الميزانية التقريبي" data-en="Approximate budget range">نطاق الميزانية التقريبي <span class="required-star">*</span></label>
           <select id="budgetRange">
+            <option value="" data-ar="اختار نطاق الميزانية" data-en="Choose a budget range">اختار نطاق الميزانية</option>
             <option value="u5" data-ar="أقل من 5,000 ج.م" data-en="Under 5,000 EGP">أقل من 5,000 ج.م</option>
             <option value="5-15" data-ar="5,000 – 15,000 ج.م" data-en="5,000–15,000 EGP">5,000 – 15,000 ج.م</option>
             <option value="15-30" data-ar="15,000 – 30,000 ج.م" data-en="15,000–30,000 EGP">15,000 – 30,000 ج.م</option>
             <option value="30+" data-ar="أكتر من 30,000 ج.م" data-en="Over 30,000 EGP">أكتر من 30,000 ج.م</option>
           </select>
+          <div class="field-error-msg" id="err-budgetRange"></div>
         </div>
       </div>
 
@@ -580,6 +716,7 @@
           <label class="choice-pill"><input type="radio" name="care" value="maybe"><span data-ar="ممكن لاحقاً" data-en="Maybe later">ممكن لاحقاً</span></label>
           <label class="choice-pill"><input type="radio" name="care" value="no"><span data-ar="لا" data-en="No">لا</span></label>
         </div>
+        <div class="field-error-msg" id="err-care"></div>
       </div>
     </section>
 
@@ -675,6 +812,7 @@ function setLang(lang){
   renderIncluded();
   renderReview();
   renderSocialInputs();
+  updateContentLabels();
   updatePrice();
 }
 
@@ -711,6 +849,11 @@ function startBrief(){
   renderRail();
 }
 
+function getSitePurpose(){
+  const el = document.querySelector('input[name="sitePurpose"]:checked');
+  return el ? el.value : null;
+}
+
 function showStep(n){
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   const target = document.querySelector('.step[data-step="'+n+'"]');
@@ -725,22 +868,123 @@ function showStep(n){
     ? (currentLang === 'en' ? 'Submit request' : 'إرسال الطلب')
     : (currentLang === 'en' ? 'Next' : 'التالي');
   if(n === 5){
-    const pkg = getSelectedPackage();
-    const skip = pkg === 'starter';
+    const skip = getSitePurpose() === 'info';
     document.getElementById('ordersSkip').style.display = skip ? 'block' : 'none';
     document.getElementById('ordersContent').style.display = skip ? 'none' : 'block';
   }
+  if(n === 2) updateContentLabels();
   if(n === 4) renderIncluded();
   if(n === 9) renderReview();
 }
 
+function setFieldError(errId, message){
+  const el = document.getElementById(errId);
+  if(!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('show', !!message);
+  const fieldWrap = el.closest('.field');
+  if(fieldWrap) fieldWrap.classList.toggle('has-error', !!message);
+}
+
+function validateStep(n){
+  let valid = true;
+  const req = (cond, errId, msgAr, msgEn) => {
+    if(!cond){
+      setFieldError(errId, currentLang === 'en' ? msgEn : msgAr);
+      valid = false;
+    } else {
+      setFieldError(errId, '');
+    }
+  };
+
+  if(n === 1){
+    req(document.getElementById('brandNameAr').value.trim() !== '', 'err-brandNameAr',
+      'اكتب اسم البراند بالعربي', 'Please enter the brand name in Arabic');
+    req(document.getElementById('businessType').value !== '', 'err-businessType',
+      'اختار نوع النشاط', 'Please choose a business type');
+    if(document.getElementById('businessType').value === 'other'){
+      req(document.getElementById('otherTypeName').value.trim() !== '', 'err-otherTypeName',
+        'اكتب اسم النشاط', 'Please describe your business type');
+    }
+    req(getSitePurpose() !== null, 'err-sitePurpose',
+      'اختار طبيعة عمل الموقع', 'Please choose what the site is mainly for');
+  }
+
+  if(n === 2){
+    const purpose = getSitePurpose();
+    if(purpose === 'products'){
+      req(document.getElementById('prodCount').value !== '', 'err-prodCount',
+        'اكتب عدد المنتجات التقريبي', 'Please enter the approximate product count');
+    } else if(purpose === 'services'){
+      req(document.getElementById('svcCount').value !== '', 'err-svcCount',
+        'اكتب عدد الخدمات المقدمة', 'Please enter the number of services');
+    } else if(purpose === 'booking'){
+      req(document.getElementById('bookingProvidersCount').value !== '', 'err-bookingProvidersCount',
+        'اكتب عدد مقدمي الخدمة', 'Please enter the number of providers');
+    } else if(purpose === 'showcase'){
+      req(document.getElementById('showcaseCount').value !== '', 'err-showcaseCount',
+        'اكتب عدد الأعمال المطلوب عرضها', 'Please enter the number of projects');
+    }
+  }
+
+  if(n === 3){
+    req(getSelectedPackage() !== null, 'err-package',
+      'اختار باقة عشان تكمل', 'Please choose a package to continue');
+  }
+
+  if(n === 5 && getSitePurpose() !== 'info'){
+    const hasPay = document.querySelector('input[name="hasPayments"]:checked');
+    req(hasPay !== null, 'err-hasPayments',
+      'جاوب على سؤال المدفوعات', 'Please answer the payments question');
+    if(hasPay && hasPay.value === 'yes'){
+      req(document.querySelector('input[name="payment"]:checked') !== null, 'err-payment',
+        'اختار طريقة الدفع', 'Please choose a payment method');
+    }
+    const hasDel = document.querySelector('input[name="hasDelivery"]:checked');
+    req(hasDel !== null, 'err-hasDelivery',
+      'جاوب على سؤال التوصيل', 'Please answer the delivery question');
+    if(hasDel && hasDel.value === 'yes'){
+      req(document.getElementById('deliveryAreas').value.trim() !== '', 'err-deliveryAreas',
+        'اكتب مناطق التوصيل', 'Please enter delivery areas');
+    }
+  }
+
+  if(n === 6){
+    req(document.querySelector('input[name="hosting"]:checked') !== null, 'err-hosting',
+      'اختار حالة الاستضافة عندك', 'Please choose your hosting situation');
+  }
+
+  if(n === 7){
+    req(document.getElementById('managerName').value.trim() !== '', 'err-managerName',
+      'اكتب مين اللي هيدير المحتوى', 'Please enter who will manage the content');
+    req(document.querySelector('input[name="training"]:checked') !== null, 'err-training',
+      'جاوب على سؤال التدريب', 'Please answer the training question');
+  }
+
+  if(n === 8){
+    req(document.getElementById('budgetRange').value !== '', 'err-budgetRange',
+      'اختار نطاق الميزانية', 'Please choose a budget range');
+    req(document.querySelector('input[name="care"]:checked') !== null, 'err-care',
+      'جاوب على سؤال Vyper Care', 'Please answer the Vyper Care question');
+  }
+
+  return valid;
+}
+
 function goStep(dir){
+  if(dir === 1 && !validateStep(currentStep)){
+    const activeStep = document.querySelector('.step.active');
+    const firstError = activeStep ? activeStep.querySelector('.field-error-msg.show') : null;
+    if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
   let next = currentStep + dir;
-  // auto-skip step5 for starter package when going forward
-  if(dir === 1 && currentStep === 4 && getSelectedPackage() === 'starter'){
+  // auto-skip step5 entirely when the site is purely informational
+  if(dir === 1 && currentStep === 4 && getSitePurpose() === 'info'){
     next = 6;
   }
-  if(dir === -1 && currentStep === 6 && getSelectedPackage() === 'starter'){
+  if(dir === -1 && currentStep === 6 && getSitePurpose() === 'info'){
     next = 4;
   }
   if(next < 1) next = 1;
@@ -754,6 +998,31 @@ function goStep(dir){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
+/* ---------- Dynamic content step based on site purpose ---------- */
+function updateContentLabels(){
+  const purpose = getSitePurpose();
+  document.querySelectorAll('.purpose-fields').forEach(el=>{
+    el.classList.toggle('active', purpose && el.id === 'pf-' + purpose);
+  });
+}
+document.querySelectorAll('input[name="sitePurpose"]').forEach(el=>{
+  el.addEventListener('change', updateContentLabels);
+});
+
+/* ---------- Payments / delivery gating ---------- */
+document.querySelectorAll('input[name="hasPayments"]').forEach(el=>{
+  el.addEventListener('change', (e)=>{
+    document.getElementById('paymentMethodField').style.display = (e.target.value === 'yes') ? 'block' : 'none';
+    updatePrice();
+  });
+});
+document.querySelectorAll('input[name="hasDelivery"]').forEach(el=>{
+  el.addEventListener('change', (e)=>{
+    document.getElementById('deliveryDetailsField').style.display = (e.target.value === 'yes') ? 'block' : 'none';
+    updatePrice();
+  });
+});
+
 /* ---------- Choice pill styling ---------- */
 document.addEventListener('change', (e)=>{
   if(e.target.matches('.choice-pill input')){
@@ -766,14 +1035,29 @@ document.addEventListener('change', (e)=>{
     document.querySelectorAll('.pkg-card').forEach(c=>c.classList.remove('selected'));
     e.target.closest('.pkg-card').classList.add('selected');
     renderIncluded();
+    setFieldError('err-package', '');
+  }
+  // live-clear the error message inside the same field once the user acts on it
+  const fieldWrap = e.target.closest('.field');
+  if(fieldWrap){
+    const errMsg = fieldWrap.querySelector('.field-error-msg');
+    if(errMsg) setFieldError(errMsg.id, '');
   }
   updatePrice();
+});
+document.addEventListener('input', (e)=>{
+  const fieldWrap = e.target.closest('.field');
+  if(fieldWrap){
+    const errMsg = fieldWrap.querySelector('.field-error-msg');
+    if(errMsg) setFieldError(errMsg.id, '');
+  }
 });
 
 function getSelectedPackage(){
   const el = document.querySelector('input[name="package"]:checked');
   return el ? el.value : null;
 }
+
 
 /* ---------- Included features per package ---------- */
 const includedMap = {
@@ -870,6 +1154,7 @@ function collectData(){
       nameAr: val('brandNameAr'), nameEn: val('brandNameEn'),
       businessType: val('businessType'),
       businessTypeOther: val('businessType') === 'other' ? val('otherTypeName') : null,
+      sitePurpose: getSitePurpose(),
       branchCount: val('branchCount'),
       branchLocations: val('branchLocations'),
       socialLinks: { ...selectedSocialPlatforms },
@@ -877,7 +1162,24 @@ function collectData(){
       identity: radio('identity')
     },
     content: {
-      photos: radio('photos'), productCount: val('productCount'), copy: radio('copy')
+      photos: radio('photos'), copy: radio('copy'),
+      sitePurpose: getSitePurpose(),
+      products: getSitePurpose() === 'products' ? {
+        count: val('prodCount'), categories: val('prodCategories'), variants: radio('prodVariants')
+      } : null,
+      services: getSitePurpose() === 'services' ? {
+        count: val('svcCount'), pricingVisibility: radio('svcPricing'), inquiryButton: radio('svcInquiry')
+      } : null,
+      booking: getSitePurpose() === 'booking' ? {
+        providersCount: val('bookingProvidersCount'), duration: val('bookingDuration'),
+        onlineCalendar: radio('bookingCalendar'), intakeForm: radio('bookingIntake')
+      } : null,
+      showcase: getSitePurpose() === 'showcase' ? {
+        count: val('showcaseCount'), categories: val('showcaseCategories'), testimonials: radio('showcaseTestimonials')
+      } : null,
+      info: getSitePurpose() === 'info' ? {
+        teamCount: val('infoTeamCount'), faq: radio('infoFaq'), certifications: radio('infoCertifications')
+      } : null
     },
     package: getSelectedPackage(),
     addons: {
@@ -885,7 +1187,11 @@ function collectData(){
       accounts: checked('addAccounts'), dashboard: checked('addDashboard')
     },
     orders: {
-      payment: radio('payment'), deliveryAreas: val('deliveryAreas'), deliveryIntegration: radio('deliveryInt')
+      hasPayments: radio('hasPayments'),
+      payment: radio('hasPayments') === 'yes' ? radio('payment') : null,
+      hasDelivery: radio('hasDelivery'),
+      deliveryAreas: radio('hasDelivery') === 'yes' ? val('deliveryAreas') : null,
+      deliveryIntegration: radio('hasDelivery') === 'yes' ? radio('deliveryInt') : null
     },
     tech: { hosting: radio('hosting'), domain: val('domainName') },
     team: { manager: val('managerName'), training: radio('training') },
@@ -1015,6 +1321,7 @@ document.getElementById('addCustomSocial').addEventListener('click', ()=>{
 document.getElementById('branchCount').addEventListener('input', updatePrice);
 renderRail();
 renderIncluded();
+updateContentLabels();
 updatePrice();
 </script>
 </body>
